@@ -1,7 +1,7 @@
 
 # Wiz → PagerDuty Threat Detection Integration 
 
-This repository contains the event payload template for routing [Wiz Threat Detection](https://docs.wiz.io/docs/coverage) alerts into PagerDuty incidents via Wiz Automation Rules.
+This repository contains the event payload template for routing [Wiz Threat Detection](https://docs.wiz.io/docs/coverage) Threats into PagerDuty via Wiz Automation Rules.
  
 > **License requirement:** Wiz Defend is required for Threats and Detections.
 
