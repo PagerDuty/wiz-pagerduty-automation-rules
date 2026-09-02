@@ -64,39 +64,37 @@ flowchart TD
  
 ```json
 {
-  "summary": "[{{#issue.enrichedCloudAccounts}}{{name}}{{/issue.enrichedCloudAccounts}}{{^issue.enrichedCloudAccounts}}N/A{{/issue.enrichedCloudAccounts}}] [{{issue.enrichedMainDetection.rule.name}}] [{{issue.entitySnapshot.type}}]{{#issue.enrichedThreatActors}} by [{{name}}]{{/issue.enrichedThreatActors}}",
-  "severity": "info",
+  "summary": "[{{issue.severity}}] {{issue.control.name}} — {{issue.entitySnapshot.name}} ({{issue.entitySnapshot.subscriptionName}}/{{issue.entitySnapshot.cloudPlatform}})",
+  "severity": "critical",
   "source": "wiz",
   "custom_details": {
-    "runbook": "https://google.com",
+    "runbook": "",
     "trigger": {
-      "source": "{{triggerSource}}{{^triggerSource}}N/A{{/triggerSource}}",
-      "type": "{{triggerType}}{{^triggerType}}N/A{{/triggerType}}",
-      "ruleId": "{{ruleId}}{{^ruleId}}N/A{{/ruleId}}",
-      "ruleName": "{{ruleName}}{{^ruleName}}N/A{{/ruleName}}",
-      "updatedFields": "{{#changedFields}}{{name}} field was changed from {{previousValuePrettified}} to {{newValuePrettified}} {{/changedFields}}{{^changedFields}}N/A{{/changedFields}}",
-      "changedBy": "{{changedBy}}{{^changedBy}}N/A{{/changedBy}}"
+      "source": "{{triggerSource}}",
+      "type": "{{triggerType}}",
+      "ruleId": "{{ruleId}}",
+      "ruleName": "{{ruleName}}",
+      "updatedFields": "{{#changedFields}}{{name}} field was changed from {{previousValuePrettified}} to {{newValuePrettified}} {{/changedFields}}",
+      "changedBy": "{{changedBy}}"
     },
     "threat": {
-      "id": "{{issue.id}}{{^issue.id}}N/A{{/issue.id}}",
-      "title": "{{issue.enrichedMainDetection.rule.name}}{{^issue.enrichedMainDetection.rule.name}}N/A{{/issue.enrichedMainDetection.rule.name}}",
-      "description": "{{issue.enrichedMainDetection.description}}{{^issue.enrichedMainDetection.description}}N/A{{/issue.enrichedMainDetection.description}}",
-      "status": "{{issue.status}}{{^issue.status}}N/A{{/issue.status}}",
-      "severity": "{{issue.severity}}{{^issue.severity}}N/A{{/issue.severity}}",
-      "created": "{{issue.createdAt}}{{^issue.createdAt}}N/A{{/issue.createdAt}}",
-      "resolutionNote": "{{issue.resolutionNote}}{{^issue.resolutionNote}}N/A{{/issue.resolutionNote}}",
-      "cloudAccounts": "{{#issue.enrichedCloudAccounts}}{{name}}, {{/issue.enrichedCloudAccounts}}{{^issue.enrichedCloudAccounts}}N/A{{/issue.enrichedCloudAccounts}}",
-      "actors": "{{#issue.enrichedThreatActors}}{{name}}, {{/issue.enrichedThreatActors}}{{^issue.enrichedThreatActors}}N/A{{/issue.enrichedThreatActors}}",
-      "resources": "{{#issue.enrichedThreatResources}}{{name}} ({{nativeType}}), {{/issue.enrichedThreatResources}}{{^issue.enrichedThreatResources}}N/A{{/issue.enrichedThreatResources}}",
-      "resourceType": "{{issue.entitySnapshot.type}}{{^issue.entitySnapshot.type}}N/A{{/issue.entitySnapshot.type}}",
-      "projects": "{{#issue.projects}}{{name}}, {{/issue.projects}}{{^issue.projects}}N/A{{/issue.projects}}",
+      "id": "{{issue.id}}",
+      "title": "{{issue.enrichedMainDetection.rule.name}}",
+      "description": "{{issue.enrichedMainDetection.description}}",
+      "status": "{{issue.status}}",
+      "severity": "{{issue.severity}}",
+      "created": "{{issue.createdAt}}",
+      "resolutionNote": "{{issue.resolutionNote}}",
+      "cloudAccounts": "{{#issue.enrichedCloudAccounts}}{{name}}, {{/issue.enrichedCloudAccounts}}",
+      "actors": "{{#issue.enrichedThreatActors}}{{name}}, {{/issue.enrichedThreatActors}}",
+      "projects": "{{#issue.projects}}{{name}}, {{/issue.projects}}",
       "threatURL": "https://{{wizDomain}}/threats#~(issue~'{{issue.id}})",
-      "resolvedAt": "{{issue.resolvedAt}}{{^issue.resolvedAt}}N/A{{/issue.resolvedAt}}",
-      "updatedAt": "{{issue.updatedAt}}{{^issue.updatedAt}}N/A{{/issue.updatedAt}}",
-      "cloudPlatform": "{{issue.entitySnapshot.cloudPlatform}}{{^issue.entitySnapshot.cloudPlatform}}N/A{{/issue.entitySnapshot.cloudPlatform}}",
-      "tdrSources": "{{#issue.enrichedDetections}}{{rule.name}}, {{/issue.enrichedDetections}}{{^issue.enrichedDetections}}N/A{{/issue.enrichedDetections}}",
-      "detectionIds": "{{#issue.enrichedDetections}}{{id}}, {{/issue.enrichedDetections}}{{^issue.enrichedDetections}}N/A{{/issue.enrichedDetections}}",
-      "notes": "{{#issue.notes}}{{user.email}}-{{text}}, {{/issue.notes}}{{^issue.notes}}N/A{{/issue.notes}}"
+      "resolvedAt": "{{issue.resolvedAt}}",
+      "updatedAt": "{{issue.updatedAt}}",
+      "cloudPlatform": "{{issue.entitySnapshot.cloudPlatform}}",
+      "tdrSources": "{{#issue.enrichedDetections}}{{rule.name}}, {{/issue.enrichedDetections}}",
+      "detectionIds": "{{#issue.enrichedDetections}}{{id}}, {{/issue.enrichedDetections}}",
+      "notes": "{{#issue.notes}}{{user.email}}-{{text}}, {{/issue.notes}}"
     }
   }
 }
@@ -105,20 +103,66 @@ flowchart TD
 ### Summary Format
  
 The incident summary renders as:
- 
+
 ```
-[<cloud account>] [<detection rule name>] [<resource type>] by [<actor>]
+[<severity>] <control name> — <entity name> (<subscription name>/<cloud platform>)
 ```
- 
+
 Example:
 ```
-[pagerduty-production] [Anomalous modification of sudoers file] [VIRTUAL_MACHINE] by [someone@pagerduty.com]
+[CRITICAL] Anomalous modification of sudoers file — my-vm (pagerduty-production/AWS)
 ```
  
-The `by [<actor>]` segment is omitted when no threat actor is identified.
- 
+### Webhook V2 Payload
+
+If you need to send Threats via a **Webhook** action instead of the native PagerDuty integration (e.g. to target a different routing key per rule), wrap the same payload in the Events API v2 envelope:
+
+```json
+{
+  "payload": {
+    "summary": "[{{issue.severity}}] {{issue.control.name}} — {{issue.entitySnapshot.name}} ({{issue.entitySnapshot.subscriptionName}}/{{issue.entitySnapshot.cloudPlatform}})",
+    "severity": "critical",
+    "source": "wiz",
+    "custom_details": {
+      "runbook": "",
+      "trigger": {
+        "source": "{{triggerSource}}",
+        "type": "{{triggerType}}",
+        "ruleId": "{{ruleId}}",
+        "ruleName": "{{ruleName}}",
+        "updatedFields": "{{#changedFields}}{{name}} field was changed from {{previousValuePrettified}} to {{newValuePrettified}} {{/changedFields}}",
+        "changedBy": "{{changedBy}}"
+      },
+      "threat": {
+        "id": "{{issue.id}}",
+        "title": "{{issue.enrichedMainDetection.rule.name}}",
+        "description": "{{issue.enrichedMainDetection.description}}",
+        "status": "{{issue.status}}",
+        "severity": "{{issue.severity}}",
+        "created": "{{issue.createdAt}}",
+        "resolutionNote": "{{issue.resolutionNote}}",
+        "cloudAccounts": "{{#issue.enrichedCloudAccounts}}{{name}}, {{/issue.enrichedCloudAccounts}}",
+        "actors": "{{#issue.enrichedThreatActors}}{{name}}, {{/issue.enrichedThreatActors}}",
+        "projects": "{{#issue.projects}}{{name}}, {{/issue.projects}}",
+        "threatURL": "https://{{wizDomain}}/threats#~(issue~'{{issue.id}})",
+        "resolvedAt": "{{issue.resolvedAt}}",
+        "updatedAt": "{{issue.updatedAt}}",
+        "cloudPlatform": "{{issue.entitySnapshot.cloudPlatform}}",
+        "tdrSources": "{{#issue.enrichedDetections}}{{rule.name}}, {{/issue.enrichedDetections}}",
+        "detectionIds": "{{#issue.enrichedDetections}}{{id}}, {{/issue.enrichedDetections}}",
+        "notes": "{{#issue.notes}}{{user.email}}-{{text}}, {{/issue.notes}}"
+      }
+    }
+  },
+  "routing_key": "<your-routing-key>",
+  "event_action": "trigger"
+}
+```
+
+Set the webhook URL to `https://events.pagerduty.com/v2/enqueue` and replace `<your-routing-key>` with your PagerDuty Events API v2 integration key.
+
 ---
- 
+
 ## Template Variables Reference
  
 | Field | Description |
